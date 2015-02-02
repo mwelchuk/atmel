@@ -53,10 +53,9 @@ int8_t uexpect(FILE *stream, const char *str1, ...)
 	va_list strings;
 	char *write_ptr;
 	char *cmp_ptr;
-	int16_t count;
+	int16_t count = 0;
 	int8_t index;
 	const char *pattern;
-	int16_t cmp_size = 0;
 	int16_t size;
 
 	/* Sort out "before" buffer */
