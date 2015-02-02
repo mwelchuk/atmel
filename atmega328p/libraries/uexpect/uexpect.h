@@ -42,6 +42,9 @@
 
 extern char uexpect_before[UEXPECT_BUF_SIZE];
 
+/* uexpect requires a terminating NULL parameter to determine where the
+ * parameters end.
+ */
 int8_t uexpect(FILE *stream, const char *str1, ...);
 
 #endif /* UEXPECT_H */

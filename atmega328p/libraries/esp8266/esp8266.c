@@ -50,18 +50,18 @@ int8_t esp8266_init(void)
 	char *match;
 
 	printf("AT+RST\r\n");
-	retval = uexpect(stdin, "www.ai-thinker.com]\r\n");
+	retval = uexpect(stdin, "www.ai-thinker.com]\r\n", NULL);
 
 	printf("ATE0\r\n");
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
 
 	printf("AT+CWMODE?\r\n");
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
@@ -72,14 +72,14 @@ int8_t esp8266_init(void)
 	if (match[8] != '1') {
 		printf("AT+CWMODE=1\r\n");
 
-		retval = uexpect(stdin, "\r\nOK\r\n");
+		retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 		if (retval != 0)
 			return retval;
 	}
 
 	printf("AT+CIPMUX=0\r\n");
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
@@ -94,11 +94,11 @@ int8_t esp8266_network(char *ssid, char *passwd)
 
 	printf("AT+CWJAP?\r\n");
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
-	match = strstr(uexpect_before, "+CWJAP:");
+	match = strstr(uexpect_before, "+CWJAP:", NULL);
 	if (match == NULL)
 		return -1;
 
@@ -106,7 +106,7 @@ int8_t esp8266_network(char *ssid, char *passwd)
 #endif
 		printf("AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, passwd);
 
-		retval = uexpect(stdin, "\r\nOK\r\n");
+		retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 		if (retval != 0)
 			return retval;
 #if 0
@@ -124,11 +124,11 @@ int8_t esp8266_http_get(char *ip, char *get_str)
 
 	printf("AT+CIPSTART=\"TCP\",\"%s\",80\r\n", ip);
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", "\r\nERROR\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
-	retval = uexpect(stdin, "Linked\r\n");
+	retval = uexpect(stdin, "Linked\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
@@ -141,25 +141,25 @@ int8_t esp8266_http_get(char *ip, char *get_str)
 	len = strlen(msg);
 
 	printf("AT+CIPSEND=%d\r\n", len);
-	retval = uexpect(stdin, "> ");
+	retval = uexpect(stdin, "> ", NULL);
 	if (retval != 0)
 		return retval;
 
 	printf(msg);
-	retval = uexpect(stdin, "\r\nSEND OK\r\n");
+	retval = uexpect(stdin, "\r\nSEND OK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
 	printf("AT+CIPCLOSE\r\n");
-	retval = uexpect(stdin, "\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n", NULL);
 	if (retval != 0)
 		return retval;
 
-	retval = uexpect(stdin, "Unlink\r\n");
+	retval = uexpect(stdin, "Unlink\r\n", NULL);
 	if (retval != 0)
 		return retval;
 

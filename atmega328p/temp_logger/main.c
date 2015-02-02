@@ -105,7 +105,12 @@ int main(void) {
 
 		retval = esp8266_http_get(SERVERIP, url);
 		if (retval != 0) {
-			printf("Failed to send temp\n");
+			/* If we fail to connect, try reconnecting to the wifi and see if that helps. */
+			retval = esp8266_network(WIFI_SSID, WIFI_PASSWORD);
+			if (retval != 0)
+				printf("ESP8266 Network error\n");
+
+			continue;
 		}
 		_delay_ms(300000);
 	}
