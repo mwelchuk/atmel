@@ -38,10 +38,6 @@
 #ifndef ESP8266_H
 #define ESP8266_H
 
-#define EXPECT_BUF_SIZE 512
-
-extern char expect_buf[EXPECT_BUF_SIZE];
-
 int8_t esp8266_init(void);
 
 int8_t esp8266_network(char *ssid, char *passwd);

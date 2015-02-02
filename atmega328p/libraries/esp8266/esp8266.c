@@ -40,48 +40,9 @@
 #include <string.h>
 
 #include "uart.h"
+#include "uexpect.h"
 #include "esp8266.h"
 
-char expect_buf[EXPECT_BUF_SIZE];
-
-int8_t expect(char *pattern)
-{
-	int16_t size;
-	int16_t overflow;
-	char *write_ptr;
-	char *cmp_ptr;
-
-	/* Sort out "before" buffer */
-	write_ptr = expect_buf;
-	cmp_ptr = expect_buf;
-	memset(expect_buf, '\0', EXPECT_BUF_SIZE);
-
-	/* Create match buffer */
-	size = strlen(pattern);
-
-	/*
-	 * Protect against overflowing "before" buffer - instead, enable return
-	 * to user as a kind of timeout.
-	 */
-	overflow = EXPECT_BUF_SIZE - size;
-
-	while (strncmp(pattern, cmp_ptr, size) != 0) {
-
-		if (overflow == 0) {
-			return -1;
-		}
-
-		overflow--;
-
-		*write_ptr = getc(stdin);
-		write_ptr++;
-
-		while((write_ptr - cmp_ptr) > size)
-			cmp_ptr++;
-	}
-
-	return 0;
-}
 
 int8_t esp8266_init(void)
 {
@@ -89,36 +50,36 @@ int8_t esp8266_init(void)
 	char *match;
 
 	printf("AT+RST\r\n");
-	retval = expect("www.ai-thinker.com]\r\n");
+	retval = uexpect(stdin, "www.ai-thinker.com]\r\n");
 
 	printf("ATE0\r\n");
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
 
 	printf("AT+CWMODE?\r\n");
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
-	match = strstr(expect_buf, "+CWMODE:");
+	match = strstr(uexpect_before, "+CWMODE:");
 	if (match == NULL)
 		return -1;
 
 	if (match[8] != '1') {
 		printf("AT+CWMODE=1\r\n");
 
-		retval = expect("\r\nOK\r\n");
+		retval = uexpect(stdin, "\r\nOK\r\n");
 		if (retval != 0)
 			return retval;
 	}
 
 	printf("AT+CIPMUX=0\r\n");
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
@@ -133,11 +94,11 @@ int8_t esp8266_network(char *ssid, char *passwd)
 
 	printf("AT+CWJAP?\r\n");
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
-	match = strstr(expect_buf, "+CWJAP:");
+	match = strstr(uexpect_before, "+CWJAP:");
 	if (match == NULL)
 		return -1;
 
@@ -145,7 +106,7 @@ int8_t esp8266_network(char *ssid, char *passwd)
 #endif
 		printf("AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, passwd);
 
-		retval = expect("\r\nOK\r\n");
+		retval = uexpect(stdin, "\r\nOK\r\n");
 		if (retval != 0)
 			return retval;
 #if 0
@@ -163,11 +124,11 @@ int8_t esp8266_http_get(char *ip, char *get_str)
 
 	printf("AT+CIPSTART=\"TCP\",\"%s\",80\r\n", ip);
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
-	retval = expect("Linked\r\n");
+	retval = uexpect(stdin, "Linked\r\n");
 	if (retval != 0)
 		return retval;
 
@@ -180,25 +141,25 @@ int8_t esp8266_http_get(char *ip, char *get_str)
 	len = strlen(msg);
 
 	printf("AT+CIPSEND=%d\r\n", len);
-	retval = expect("> ");
+	retval = uexpect(stdin, "> ");
 	if (retval != 0)
 		return retval;
 
 	printf(msg);
-	retval = expect("\r\nSEND OK\r\n");
+	retval = uexpect(stdin, "\r\nSEND OK\r\n");
 	if (retval != 0)
 		return retval;
 
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
 	printf("AT+CIPCLOSE\r\n");
-	retval = expect("\r\nOK\r\n");
+	retval = uexpect(stdin, "\r\nOK\r\n");
 	if (retval != 0)
 		return retval;
 
-	retval = expect("Unlink\r\n");
+	retval = uexpect(stdin, "Unlink\r\n");
 	if (retval != 0)
 		return retval;
 
