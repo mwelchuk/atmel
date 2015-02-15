@@ -106,7 +106,7 @@ int8_t esp8266_network(char *ssid, char *passwd)
 #endif
 		printf("AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, passwd);
 
-		retval = uexpect(stdin, "\r\nOK\r\n", NULL);
+		retval = uexpect(stdin, "\r\nOK\r\n", "\r\nFAIL\r\n", NULL);
 		if (retval != 0)
 			return retval;
 #if 0

@@ -71,6 +71,7 @@ int main(void) {
 	double temp;
 	double humidity;
 	char url[URL_SIZE];
+	int8_t loop;
 
 	uart_init(UART_ECHO_OFF);
 
@@ -81,38 +82,44 @@ int main(void) {
 	if (retval != 0)
 		printf("DHT22 Init error\n");
 
-
-	retval = esp8266_init();
-	if (retval != 0)
-		printf("ESP8266 Init error\n");
-
-	retval = esp8266_network(WIFI_SSID, WIFI_PASSWORD);
-	if (retval != 0)
-		printf("ESP8266 Network error\n");
-
-
 	while (1) {
-		retval = dht22_getdata(&temp, &humidity);
-		if (retval != 0) {
-			printf("Failed to get reading\n");
-		}
-
-#if 1
-		snprintf(url, URL_SIZE, "/emoncms/input/post.json?apikey=%s&node=%s&json={temp:%.2f,rh:%.2f}", APIKEY, NODENAME, temp, humidity);
-#else
-		snprintf(url, URL_SIZE, "/emoncms/input/post.json?apikey=%s&node=%s&json={temp:%d}", APIKEY, NODENAME, temp);
-#endif
-
-		retval = esp8266_http_get(SERVERIP, url);
-		if (retval != 0) {
-			/* If we fail to connect, try reconnecting to the wifi and see if that helps. */
-			retval = esp8266_network(WIFI_SSID, WIFI_PASSWORD);
-			if (retval != 0)
-				printf("ESP8266 Network error\n");
-
+		retval = esp8266_init();
+		if (retval != 0)
+			/*
+			printf("ESP8266 Init error\n");
+			*/
 			continue;
+
+		retval = esp8266_network(WIFI_SSID, WIFI_PASSWORD);
+		if (retval != 0)
+			/*
+			printf("ESP8266 Network error\n");
+			*/
+			continue;
+
+		loop = 0;
+
+		while (loop == 0) {
+			retval = dht22_getdata(&temp, &humidity);
+			if (retval != 0) {
+				/*
+				printf("Failed to get reading\n");
+				*/
+				continue;
+			}
+
+			snprintf(url, URL_SIZE, "/emoncms/input/post.json?apikey=%s&node=%s&json={temp:%.2f,rh:%.2f}", APIKEY, NODENAME, temp, humidity);
+
+			retval = esp8266_http_get(SERVERIP, url);
+			if (retval != 0) {
+				/* If we fail redo init */
+				loop = 1;
+				continue;
+			}
+
+			_delay_ms(300000);
 		}
-		_delay_ms(300000);
+
 	}
 
 	return 0;
